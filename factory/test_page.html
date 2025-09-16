@@ -1,0 +1,991 @@
+<html>
+<head>
+    <style>
+        :root {
+            --bg-primary: #1e1e2e;
+            --bg-secondary: #282a36;
+            --bg-hover: #313244;
+            --text-primary: #f8f8f2;
+            --text-secondary: #bac2de;
+            --text-muted: #6c7086;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+            --accent-cyan: #89dceb;
+            --shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            padding: 15px 20px;
+            border-bottom: 1px solid #3b3b4d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .repo-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .repo-icon {
+            color: var(--accent-purple);
+            font-size: 22px;
+        }
+
+        .repo-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .repo-details {
+            display: flex;
+            gap: 15px;
+        }
+
+        .repo-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 58px);
+            position: relative;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid #3b3b4d;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+            padding: 15px 0;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .search-bar {
+            margin: 0 15px 15px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid #3b3b4d;
+            border-radius: 5px;
+            padding: 8px 10px 8px 30px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .branch-selector {
+            margin: 0 15px 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            background-color: var(--bg-primary);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid #3b3b4d;
+            color: var(--text-secondary);
+            transition: background-color 0.2s ease;
+        }
+
+        .branch-selector:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .branch-icon {
+            color: var(--accent-purple);
+        }
+
+        .sidebar-title {
+            padding: 10px 15px 5px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .file-tree {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+
+        .tree-item {
+            margin: 2px 0;
+            position: relative;
+        }
+
+        .tree-toggle {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+
+        .tree-toggle:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .tree-toggle.active {
+            background-color: rgba(137, 180, 250, 0.1);
+        }
+
+        .toggle-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+        }
+
+        .tree-toggle.expanded .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .item-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .item-icon {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .item-icon.folder {
+            color: var(--accent-yellow);
+        }
+
+        .item-icon.file-js {
+            color: var(--accent-yellow);
+        }
+
+        .item-icon.file-html {
+            color: var(--accent-orange);
+        }
+
+        .item-icon.file-css {
+            color: var(--accent-blue);
+        }
+
+        .item-icon.file-json {
+            color: var(--accent-cyan);
+        }
+
+        .item-icon.file-md {
+            color: var(--accent-purple);
+        }
+
+        .item-icon.file-ts {
+            color: var(--accent-blue);
+        }
+
+        .item-icon.file-img {
+            color: var(--accent-green);
+        }
+
+        .item-icon.file-txt {
+            color: var(--text-secondary);
+        }
+
+        .nested {
+            display: none;
+            padding-left: 20px;
+            margin-top: 2px;
+            list-style-type: none;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        .tree-toggle.expanded + .nested {
+            display: block;
+            max-height: 1000px;
+        }
+
+        .file-path {
+            padding: 10px 15px;
+            background-color: var(--bg-secondary);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: nowrap;
+            color: var(--text-secondary);
+        }
+
+        .path-separator {
+            color: var(--text-muted);
+            margin: 0 5px;
+        }
+
+        .file-details {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .file-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .file-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-action {
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .file-action:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .file-content {
+            background-color: var(--bg-secondary);
+            border-radius: 5px;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            border: 1px solid #3b3b4d;
+        }
+
+        .line-numbers {
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 10px;
+            user-select: none;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        .code-content {
+            padding: 12px 0;
+        }
+
+        .code-line {
+            display: flex;
+        }
+
+        .code-text {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .active-file {
+            background-color: rgba(137, 180, 250, 0.1);
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-secondary);
+            display: flex;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-top: 1px solid #3b3b4d;
+        }
+
+        .bottom-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 15px;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            animation: loading 1s ease-in-out;
+            z-index: 999;
+        }
+
+        @keyframes loading {
+            0% { width: 0; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        /* Theme markers */
+        .keyword { color: var(--accent-purple); }
+        .string { color: var(--accent-green); }
+        .comment { color: var(--text-muted); font-style: italic; }
+        .function { color: var(--accent-blue); }
+        .number { color: var(--accent-orange); }
+        .property { color: var(--accent-cyan); }
+        .operator { color: var(--accent-red); }
+        .html-tag { color: var(--accent-red); }
+        .html-attr { color: var(--accent-cyan); }
+
+        /* CSS for tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background-color: #2a2a3a;
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: 4px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 700px) {
+            .sidebar {
+                width: 50px;
+                overflow-x: hidden;
+            }
+            
+            .sidebar:hover {
+                width: 200px;
+                z-index: 10;
+            }
+            
+            .sidebar-title, .branch-selector span, .search-bar {
+                display: none;
+            }
+            
+            .sidebar:hover .sidebar-title, 
+            .sidebar:hover .branch-selector span, 
+            .sidebar:hover .search-bar {
+                display: block;
+            }
+            
+            .file-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .file-actions {
+                justify-content: space-between;
+            }
+        }
+
+        /* Pulsing animation for active file */
+        @keyframes pulse {
+            0% { background-color: rgba(137, 180, 250, 0.1); }
+            50% { background-color: rgba(137, 180, 250, 0.2); }
+            100% { background-color: rgba(137, 180, 250, 0.1); }
+        }
+
+        .tree-toggle.active {
+            animation: pulse 2s infinite;
+        }
+
+        /* Fancy badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .badge-new {
+            background-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .badge-modified {
+            background-color: var(--accent-orange);
+            color: var(--bg-primary);
+        }
+
+        /* File drag indicator */
+        .drag-indicator {
+            height: 2px;
+            background-color: var(--accent-blue);
+            margin: 2px 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .drag-indicator.active {
+            opacity: 1;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b3b4d;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4d4d63;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-indicator"></div>
+    <header>
+        <div class="repo-info">
+            <i class="repo-icon fas fa-code-branch"></i>
+            <span class="repo-name">quantum-ui</span>
+        </div>
+        <div class="repo-details">
+            <div class="repo-stat tooltip">
+                <i class="fas fa-star"></i>
+                <span>254</span>
+                <span class="tooltip-text">Stars</span>
+            </div>
+            <div class="repo-stat tooltip">
+                <i class="fas fa-code-branch"></i>
+                <span>54</span>
+                <span class="tooltip-text">Forks</span>
+            </div>
+            <div class="repo-stat tooltip">
+                <i class="fas fa-eye"></i>
+                <span>1.2k</span>
+                <span class="tooltip-text">Watchers</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="search-bar">
+                <i class="search-icon fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Search files...">
+            </div>
+            <div class="branch-selector">
+                <i class="branch-icon fas fa-code-branch"></i>
+                <span>main</span>
+            </div>
+            <div class="sidebar-title">Explorer</div>
+            <ul class="file-tree">
+                <li class="tree-item">
+                    <div class="tree-toggle expanded">
+                        <span class="toggle-icon">▶</span>
+                        <div class="item-name">
+                            <i class="item-icon folder fas fa-folder"></i>
+                            <span>src</span>
+                        </div>
+                    </div>
+                    <ul class="nested">
+                        <li class="tree-item">
+                            <div class="tree-toggle expanded">
+                                <span class="toggle-icon">▶</span>
+                                <div class="item-name">
+                                    <i class="item-icon folder fas fa-folder"></i>
+                                    <span>components</span>
+                                </div>
+                            </div>
+                            <ul class="nested">
+                                <li class="tree-item">
+                                    <div class="tree-toggle expanded">
+                                        <span class="toggle-icon">▶</span>
+                                        <div class="item-name">
+                                            <i class="item-icon folder fas fa-folder"></i>
+                                            <span>Button</span>
+                                        </div>
+                                    </div>
+                                    <ul class="nested">
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-js fab fa-js"></i>
+                                                    <span>Button.jsx</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-css fab fa-css3"></i>
+                                                    <span>Button.module.css</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-js fab fa-js"></i>
+                                                    <span>index.js</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="tree-item">
+                                    <div class="tree-toggle expanded">
+                                        <span class="toggle-icon">▶</span>
+                                        <div class="item-name">
+                                            <i class="item-icon folder fas fa-folder"></i>
+                                            <span>TreeView</span>
+                                            <span class="badge badge-new">New</span>
+                                        </div>
+                                    </div>
+                                    <ul class="nested">
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-ts fab fa-js"></i>
+                                                    <span>TreeView.tsx</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="tree-item">
+                                            <div class="tree-toggle active">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-ts fab fa-js"></i>
+                                                    <span>TreeNode.tsx</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-css fab fa-css3"></i>
+                                                    <span>TreeView.module.css</span>
+                                                    <span class="badge badge-modified">Modified</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="tree-item">
+                                            <div class="tree-toggle">
+                                                <span class="toggle-icon invisible"></span>
+                                                <div class="item-name">
+                                                    <i class="item-icon file-js fab fa-js"></i>
+                                                    <span>index.ts</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="tree-item">
+                                    <div class="tree-toggle">
+                                        <span class="toggle-icon">▶</span>
+                                        <div class="item-name">
+                                            <i class="item-icon folder fas fa-folder"></i>
+                                            <span>Modal</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="tree-item">
+                                    <div class="tree-toggle">
+                                        <span class="toggle-icon">▶</span>
+                                        <div class="item-name">
+                                            <i class="item-icon folder fas fa-folder"></i>
+                                            <span>Dropdown</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="tree-item">
+                            <div class="tree-toggle">
+                                <span class="toggle-icon">▶</span>
+                                <div class="item-name">
+                                    <i class="item-icon folder fas fa-folder"></i>
+                                    <span>hooks</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="tree-item">
+                            <div class="tree-toggle">
+                                <span class="toggle-icon">▶</span>
+                                <div class="item-name">
+                                    <i class="item-icon folder fas fa-folder"></i>
+                                    <span>utils</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="tree-item">
+                            <div class="tree-toggle">
+                                <span class="toggle-icon invisible"></span>
+                                <div class="item-name">
+                                    <i class="item-icon file-js fab fa-js"></i>
+                                    <span>index.ts</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon">▶</span>
+                        <div class="item-name">
+                            <i class="item-icon folder fas fa-folder"></i>
+                            <span>public</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon">▶</span>
+                        <div class="item-name">
+                            <i class="item-icon folder fas fa-folder"></i>
+                            <span>tests</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon invisible"></span>
+                        <div class="item-name">
+                            <i class="item-icon file-json fas fa-file-code"></i>
+                            <span>package.json</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon invisible"></span>
+                        <div class="item-name">
+                            <i class="item-icon file-json fas fa-file-code"></i>
+                            <span>tsconfig.json</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon invisible"></span>
+                        <div class="item-name">
+                            <i class="item-icon file-md fas fa-file-alt"></i>
+                            <span>README.md</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="tree-toggle">
+                        <span class="toggle-icon invisible"></span>
+                        <div class="item-name">
+                            <i class="item-icon file-md fas fa-file-alt"></i>
+                            <span>CHANGELOG.md</span>
+                        </div>
+                    </div>
+                </li>
+                <li class="tree-item">
+                    <div class="drag-indicator"></div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="file-path">
+                <span style="color: var(--accent-yellow);">quantum-ui</span>
+                <span class="path-separator">/</span>
+                <span>src</span>
+                <span class="path-separator">/</span>
+                <span>components</span>
+                <span class="path-separator">/</span>
+                <span>TreeView</span>
+                <span class="path-separator">/</span>
+                <span style="color: var(--accent-blue);">TreeNode.tsx</span>
+            </div>
+
+            <div class="file-details">
+                <div class="file-stats">
+                    <div class="file-stat tooltip">
+                        <i class="fas fa-code"></i>
+                        <span>124 lines</span>
+                        <span class="tooltip-text">Lines of code</span>
+                    </div>
+                    <div class="file-stat tooltip">
+                        <i class="fas fa-history"></i>
+                        <span>Last edited 2 hours ago</span>
+                        <span class="tooltip-text">By quantum-dev</span>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="file-action tooltip">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit</span>
+                        <span class="tooltip-text">Edit file</span>
+                    </button>
+                    <button class="file-action tooltip">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                        <span class="tooltip-text">View file history</span>
+                    </button>
+                    <button class="file-action tooltip">
+                        <i class="fas fa-download"></i>
+                        <span>Raw</span>
+                        <span class="tooltip-text">View raw file</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="file-content">
+                <table>
+                    <tbody>
+                        <tr class="code-line">
+                            <td class="line-numbers">1</td>
+                            <td class="code-text"><span class="keyword">import</span> React, { <span class="property">useState</span>, <span class="property">useEffect</span>, <span class="property">useRef</span> } <span class="keyword">from</span> <span class="string">'react'</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">2</td>
+                            <td class="code-text"><span class="keyword">import</span> styles <span class="keyword">from</span> <span class="string">'./TreeView.module.css'</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">3</td>
+                            <td class="code-text"></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">4</td>
+                            <td class="code-text"><span class="keyword">export</span> <span class="keyword">interface</span> <span class="function">TreeNodeProps</span> {</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">5</td>
+                            <td class="code-text">  <span class="property">id</span>: <span class="property">string</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">6</td>
+                            <td class="code-text">  <span class="property">label</span>: <span class="property">string</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">7</td>
+                            <td class="code-text">  <span class="property">icon</span>?: <span class="property">string</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">8</td>
+                            <td class="code-text">  <span class="property">type</span>: <span class="string">'file'</span> | <span class="string">'folder'</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">9</td>
+                            <td class="code-text">  <span class="property">children</span>?: <span class="property">TreeNodeProps</span>[];</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">10</td>
+                            <td class="code-text">  <span class="property">isExpanded</span>?: <span class="property">boolean</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">11</td>
+                            <td class="code-text">  <span class="property">level</span>?: <span class="property">number</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">12</td>
+                            <td class="code-text">  <span class="property">onToggle</span>?: (<span class="property">id</span>: <span class="property">string</span>) <span class="operator">=></span> <span class="property">void</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">13</td>
+                            <td class="code-text">  <span class="property">onSelect</span>?: (<span class="property">id</span>: <span class="property">string</span>) <span class="operator">=></span> <span class="property">void</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">14</td>
+                            <td class="code-text">  <span class="property">isSelected</span>?: <span class="property">boolean</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">15</td>
+                            <td class="code-text">  <span class="property">isDraggable</span>?: <span class="property">boolean</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">16</td>
+                            <td class="code-text">  <span class="property">badge</span>?: {</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">17</td>
+                            <td class="code-text">    <span class="property">text</span>: <span class="property">string</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">18</td>
+                            <td class="code-text">    <span class="property">variant</span>: <span class="string">'new'</span> | <span class="string">'modified'</span> | <span class="string">'error'</span>;</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">19</td>
+                            <td class="code-text">  }</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">20</td>
+                            <td class="code-text">}</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">21</td>
+                            <td class="code-text"></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">22</td>
+                            <td class="code-text"><span class="comment">/**</span></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">23</td>
+                            <td class="code-text"><span class="comment"> * TreeNode component represents a node in the tree structure</span></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">24</td>
+                            <td class="code-text"><span class="comment"> * It can be a file or a folder with nested items</span></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">25</td>
+                            <td class="code-text"><span class="comment"> */</span></td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">26</td>
+                            <td class="code-text"><span class="keyword">const</span> <span class="function">TreeNode</span>: <span class="property">React.FC</span><span class="operator"><</span><span class="property">TreeNodeProps</span><span class="operator">></span> <span class="operator">=</span> ({</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">27</td>
+                            <td class="code-text">  <span class="property">id</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">28</td>
+                            <td class="code-text">  <span class="property">label</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">29</td>
+                            <td class="code-text">  <span class="property">icon</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">30</td>
+                            <td class="code-text">  <span class="property">type</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">31</td>
+                            <td class="code-text">  <span class="property">children</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">32</td>
+                            <td class="code-text">  <span class="property">isExpanded</span> <span class="operator">=</span> <span class="keyword">false</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">33</td>
+                            <td class="code-text">  <span class="property">level</span> <span class="operator">=</span> <span class="number">0</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">34</td>
+                            <td class="code-text">  <span class="property">onToggle</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">35</td>
+                            <td class="code-text">  <span class="property">onSelect</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">36</td>
+                            <td class="code-text">  <span class="property">isSelected</span> <span class="operator">=</span> <span class="keyword">false</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">37</td>
+                            <td class="code-text">  <span class="property">isDraggable</span> <span class="operator">=</span> <span class="keyword">true</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">38</td>
+                            <td class="code-text">  <span class="property">badge</span>,</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">39</td>
+                            <td class="code-text">}) <span class="operator">=></span> {</td>
+                        </tr>
+                        <tr class="code-line">
+                            <td class="line-numbers">40</td>
+                            <td class="code-text">  <span class="keyword">const</span> [<span class="property">expanded</span>, <span class="property">setExpanded</span>] <span class="operator">=</span> <span class="function">useState</span><span class="operator">
