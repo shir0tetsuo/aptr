@@ -40,7 +40,7 @@ require("dotenv").config();
 let application_start = new Date();
 
 /**
- * Read file from fs like from `'/private'`
+ * Read file from private location in fs like from `'/factory'`
  * 
  * @param {string} filePath 
  * @returns {string} file data => `data.toString()`
@@ -54,7 +54,7 @@ async function readFile(filePath) {
     }
 }
 
-server.get('/', async(req, res) => {
+server.get('/example', async(req, res) => {
 
     page = await readFile('./factory/test_page.html')
 
@@ -62,12 +62,9 @@ server.get('/', async(req, res) => {
 })
 
 
-
 /*
 
-  #################################################################################
     Start Server Listener (END)
-  #################################################################################
 
 */
 server.listen(
